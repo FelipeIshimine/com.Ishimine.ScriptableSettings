@@ -12,14 +12,6 @@ using UnityEditor.PackageManager.Requests;
 [CreateAssetMenu(menuName = "GameSettings/Manager", fileName = "GameSettingsManager")]
 public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSettingsManager>
 {
-#if UNITY_EDITOR
-    public static class UpdateScriptableSettingsPackage
-    {
-        [MenuItem("Window/Ishimine/Update/ScriptableSettings")]
-        public static void SelectMe() => Client.Add("https://github.com/FelipeIshimine/ScriptableSettings.git");
-    }
-#endif
-
     [SerializeField] private  List<ScriptableTag> tags = new List<ScriptableTag>();
     public List<ScriptableTag> Tags
     {
