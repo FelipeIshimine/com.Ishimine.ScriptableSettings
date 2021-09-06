@@ -8,7 +8,7 @@ namespace Editor
     {
         private string _filterValue = string.Empty;
 
-        [MenuItem("Window/ScriptableSettings", priority = 1)]
+        [MenuItem("Window/ScriptableSettings")]
         public static void OpenWindow()
         {
             ScriptableSettingsWindow wnd = GetWindow<ScriptableSettingsWindow>();
