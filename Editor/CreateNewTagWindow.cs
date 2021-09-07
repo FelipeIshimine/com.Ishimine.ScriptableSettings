@@ -4,8 +4,6 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using Debug = System.Diagnostics.Debug;
 
-namespace Editor
-{
     public class CreateNewTagWindow : EditorWindow
     {
         public float rotationAmount = 0.33f;
@@ -69,4 +67,3 @@ namespace Editor
                 Close();
         }
     }
-}

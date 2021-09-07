@@ -2,8 +2,6 @@ using Sirenix.OdinInspector.Editor;
 using UnityEditor;
 using UnityEngine;
 
-namespace Editor
-{
     public class ScriptableSettingsWindow : OdinMenuEditorWindow
     {
         private string _filterValue = string.Empty;
@@ -27,4 +25,3 @@ namespace Editor
             return tree;
         }
     }
-}

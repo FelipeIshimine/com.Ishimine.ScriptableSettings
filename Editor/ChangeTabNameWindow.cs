@@ -3,8 +3,6 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Editor
-{
     public class ChangeTabNameWindow : EditorWindow
     {
         public float rotationAmount = 0.33f;
@@ -82,4 +80,3 @@ namespace Editor
                 Close();
         }
     }
-}
