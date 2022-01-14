@@ -12,18 +12,22 @@ using UnityEditor.PackageManager.Requests;
 [CreateAssetMenu(menuName = "GameSettings/Manager", fileName = "GameSettingsManager")]
 public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSettingsManager>
 {
-    [SerializeField] private  List<ScriptableTag> tags = new List<ScriptableTag>();
-    public List<ScriptableTag> Tags
-    {
-        get
-        {
-            if (tags == null)
-                InitializeTags();
-            return tags;
-        }
-    }
+    
+    [SerializeField, ListDrawerSettings(HideAddButton = true, CustomRemoveIndexFunction = nameof(RemoveTag))] private  List<ScriptableTag> tags = new List<ScriptableTag>();
+    public List<ScriptableTag> Tags => tags;
 
-    [SerializeField, AssetList(AutoPopulate = true)] private  List<ScriptableSettings> scriptableSettings;
+    public bool removeSettingsFromNames = false;
+    public bool removeManagerFromNames = false;
+
+    public void RemoveTag(int index)
+    {
+        var tag = tags[index];
+        tags.RemoveAt(index);
+        DestroyImmediate(tag, true);
+        AssetDatabase.SaveAssets();
+    }
+    
+    [SerializeField,/* AssetList(AutoPopulate = true), */ListDrawerSettings(HideAddButton = true)] private  List<ScriptableSettings> scriptableSettings;
     public List<ScriptableSettings> ScriptableSettings
     {
         get
@@ -59,11 +63,6 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
             _allSettings.Add(GetKey(item.GetType()), item);
     }
     
-    private void InitializeTags()
-    {
-        tags = new List<ScriptableTag>(Resources.LoadAll<ScriptableTag>(DefaultFilePath));
-    }
-
     public static string GetKey(Type type) => type.FullName;
     public const string AssetsPath = "Assets/ScriptableSettings/Resources";
     public static T Get<T>() where T : ScriptableSettings
@@ -78,6 +77,8 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
     }
 
 #if UNITY_EDITOR
+    
+    [Button]
     public static ScriptableTag CreateNewTag(string nTagName)
     {
         return Instance.FindOrCreateTag(nTagName);

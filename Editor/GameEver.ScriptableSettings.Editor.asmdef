@@ -2,7 +2,8 @@
     "name": "GameEver.ScriptableSettings.Editor",
     "rootNamespace": "",
     "references": [
-        "GUID:aea1dc50a2fcb3843a1b75ed65e1facd"
+        "GUID:aea1dc50a2fcb3843a1b75ed65e1facd",
+        "GUID:260cde92bc1d2b243bb38045b2f5809f"
     ],
     "includePlatforms": [
         "Editor"
