@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector.Editor;
 using Sirenix.Utilities;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-    public class ScriptableSettingsWindow : OdinMenuEditorWindow
+public class ScriptableSettingsWindow : OdinMenuEditorWindow
     {
         private string _filterValue = string.Empty;
 
@@ -19,14 +21,29 @@ using UnityEngine;
         {
             var tree = new OdinMenuTree(false, new OdinMenuTreeDrawingConfig(){ DrawSearchToolbar = true, AutoHandleKeyboardNavigation = false});
             
-            tree.AddAllAssetsAtPath("All", "Assets/ScriptableObjects/Managers", true);
+            //tree.AddAllAssetsAtPath("All", "Assets/ScriptableObjects/Managers", true);
         
             tree.AddAllAssetsAtPath("Settings", "Assets/ScriptableObjects/Settings",
                 typeof(ScriptableSettings));
+
+            var scriptableSingleton = FindObjectsOfType<BaseRuntimeScriptableSingleton>();
             
             var settingsManager = ScriptableSettingsManager.Instance;
 
+            Type type = typeof(ScriptableSettingsManager);
+            
+            HashSet<Object> assets = new HashSet<Object>();
+            string[] guids = AssetDatabase.FindAssets($"t:{type}");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+                UnityEngine.Object[] found = AssetDatabase.LoadAllAssetsAtPath(assetPath);
 
+                for (int index = 0; index < found.Length; index++)
+                    if (found[index].GetType() == type && !assets.Contains(found[index]))
+                        assets.Add(found[index]);
+            }
+            
             foreach (ScriptableTag tag in settingsManager.Tags)
             {
                 if(tag == null) continue;
@@ -35,6 +52,8 @@ using UnityEngine;
                 {
                     if(element == null) continue;
 
+                    if (assets.Contains(element))
+                        assets.Remove(element);
                     string elementName = element.name;
 
                     if (settingsManager.removeManagerFromNames) elementName = elementName.Replace("Manager", String.Empty);
@@ -43,6 +62,10 @@ using UnityEngine;
                     tree.Add($"{tag.name}/{elementName}", element);
                 }
             }
+
+            foreach (Object asset in assets)
+                tree.Add($"_/{asset.name}", asset);
+            
             tree.SortMenuItemsByName();
             tree.Add("PERSONALIZATION", settingsManager);
 

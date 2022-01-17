@@ -19,14 +19,7 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
     public bool removeSettingsFromNames = false;
     public bool removeManagerFromNames = false;
 
-    public void RemoveTag(int index)
-    {
-        var tag = tags[index];
-        tags.RemoveAt(index);
-        DestroyImmediate(tag, true);
-        AssetDatabase.SaveAssets();
-    }
-    
+
     [SerializeField,/* AssetList(AutoPopulate = true), */ListDrawerSettings(HideAddButton = true)] private  List<ScriptableSettings> scriptableSettings;
     public List<ScriptableSettings> ScriptableSettings
     {
@@ -76,8 +69,20 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
         return Instance.AllSettings[key] as T;
     }
 
+    public void RemoveTag(int index)
+    {
+        var tag = tags[index];
+        tags.RemoveAt(index);
+        DestroyImmediate(tag, true);
 #if UNITY_EDITOR
+        AssetDatabase.SaveAssets();
+#endif
+    }
+
     
+    
+#if UNITY_EDITOR
+  
     [Button]
     public static ScriptableTag CreateNewTag(string nTagName)
     {
