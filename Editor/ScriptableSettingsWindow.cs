@@ -21,26 +21,19 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
         {
             var tree = new OdinMenuTree(false, new OdinMenuTreeDrawingConfig(){ DrawSearchToolbar = true, AutoHandleKeyboardNavigation = false});
             
-            //tree.AddAllAssetsAtPath("All", "Assets/ScriptableObjects/Managers", true);
-        
             tree.AddAllAssetsAtPath("Settings", "Assets/ScriptableObjects/Settings",
                 typeof(ScriptableSettings));
 
-            var scriptableSingleton = FindObjectsOfType<BaseRuntimeScriptableSingleton>();
-            
             var settingsManager = ScriptableSettingsManager.Instance;
-
-            Type type = typeof(ScriptableSettingsManager);
-            
+            Type type = typeof(BaseRuntimeScriptableSingleton);
             HashSet<Object> assets = new HashSet<Object>();
             string[] guids = AssetDatabase.FindAssets($"t:{type}");
             for (int i = 0; i < guids.Length; i++)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
                 UnityEngine.Object[] found = AssetDatabase.LoadAllAssetsAtPath(assetPath);
-
                 for (int index = 0; index < found.Length; index++)
-                    if (found[index].GetType() == type && !assets.Contains(found[index]))
+                    if (found[index].GetType().IsSubclassOf(type) && !assets.Contains(found[index]))
                         assets.Add(found[index]);
             }
             
@@ -54,6 +47,7 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
 
                     if (assets.Contains(element))
                         assets.Remove(element);
+                    
                     string elementName = element.name;
 
                     if (settingsManager.removeManagerFromNames) elementName = elementName.Replace("Manager", String.Empty);
