@@ -13,8 +13,8 @@ using UnityEditor.PackageManager.Requests;
 public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSettingsManager>
 {
     
-    [SerializeField, ListDrawerSettings(HideAddButton = true, CustomRemoveIndexFunction = nameof(RemoveTag))] private  List<ScriptableTag> tags = new List<ScriptableTag>();
-    public List<ScriptableTag> Tags => tags;
+    [SerializeField, ListDrawerSettings(HideAddButton = true, CustomRemoveIndexFunction = nameof(RemoveTag))] private  List<ScriptableSettingsTag> tags = new List<ScriptableSettingsTag>();
+    public List<ScriptableSettingsTag> Tags => tags;
 
     public bool removeSettingsFromNames = false;
     public bool removeManagerFromNames = false;
@@ -84,20 +84,20 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
 #if UNITY_EDITOR
   
     [Button]
-    public static ScriptableTag CreateNewTag(string nTagName)
+    public static ScriptableSettingsTag CreateNewTag(string nTagName)
     {
         return Instance.FindOrCreateTag(nTagName);
     }
 
-    public ScriptableTag FindOrCreateTag(string tagName)
+    public ScriptableSettingsTag FindOrCreateTag(string tagName)
     {
-        ScriptableTag tag = tags.Find(x => x.name == tagName);
+        ScriptableSettingsTag tag = tags.Find(x => x.name == tagName);
         return (tag == null)?CreateTag(tagName): tag;
     }
 
-    private ScriptableTag CreateTag(string tagName)
+    private ScriptableSettingsTag CreateTag(string tagName)
     {
-        ScriptableTag nTag = CreateInstance<ScriptableTag>();
+        ScriptableSettingsTag nTag = CreateInstance<ScriptableSettingsTag>();
         nTag.name = tagName;
         AssetDatabase.AddObjectToAsset(nTag, this);
         tags.Add(nTag);
@@ -152,7 +152,7 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
             select type;
     }
     
-    public static void DeleteTag(ScriptableTag tag)
+    public static void DeleteTag(ScriptableSettingsTag tag)
     {
         Instance.tags.Remove(tag);
         DestroyImmediate(tag,true);

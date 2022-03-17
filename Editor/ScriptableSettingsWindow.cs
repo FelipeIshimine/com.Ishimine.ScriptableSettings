@@ -37,7 +37,7 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
                         assets.Add(found[index]);
             }
             
-            foreach (ScriptableTag tag in settingsManager.Tags)
+            foreach (ScriptableSettingsTag tag in settingsManager.Tags)
             {
                 if(tag == null) continue;
                 tree.Add($"{tag.name}", tag);
