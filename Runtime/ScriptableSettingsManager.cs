@@ -5,40 +5,33 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
 using UnityEditor;
-using UnityEditor.PackageManager;
-using UnityEditor.PackageManager.Requests;  
 #endif
 
 [CreateAssetMenu(menuName = "GameSettings/Manager", fileName = "GameSettingsManager")]
 public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSettingsManager>
 {
-    
-    [SerializeField, ListDrawerSettings(HideAddButton = true, CustomRemoveIndexFunction = nameof(RemoveTag))] private  List<ScriptableSettingsTag> tags = new List<ScriptableSettingsTag>();
+    [SerializeField] 
+    #if UNITY_EDITOR
+    [ListDrawerSettings(HideAddButton = true, CustomRemoveIndexFunction = nameof(RemoveTag))] 
+    #endif
+    private  List<ScriptableSettingsTag> tags = new List<ScriptableSettingsTag>();
     public List<ScriptableSettingsTag> Tags => tags;
 
     public bool removeSettingsFromNames = false;
     public bool removeManagerFromNames = false;
 
+    [SerializeField, ListDrawerSettings(HideAddButton = true)]
+    private List<ScriptableSettings> scriptableSettings = new List<ScriptableSettings>();
 
-    [SerializeField,/* AssetList(AutoPopulate = true), */ListDrawerSettings(HideAddButton = true)] private  List<ScriptableSettings> scriptableSettings;
-    public List<ScriptableSettings> ScriptableSettings
+    public List<ScriptableSettings> ScriptableSettings => scriptableSettings;
+
+    private Dictionary<string, ScriptableSettings> _index;
+    public Dictionary<string, ScriptableSettings> Index
     {
         get
         {
-            if (scriptableSettings == null)
-                InitializeAllSettings();
-            return scriptableSettings;
-        }
-    }
-
-    public Dictionary<string, ScriptableSettings> _allSettings;
-    public Dictionary<string, ScriptableSettings> AllSettings
-    {
-        get
-        {
-            if (_allSettings == null)
-                InitializeAllSettings();
-            return _allSettings;
+            if (_index == null) InitializeIndex();
+            return _index;
         }    
     }
 
@@ -49,39 +42,39 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
     }
     [SerializeField] private bool showRuntimeScriptableSingleton = true;
 
-    private void InitializeAllSettings()
+    private void InitializeIndex()
     {
-        _allSettings = new Dictionary<string, ScriptableSettings>();
+        _index = new Dictionary<string, ScriptableSettings>();
         foreach (ScriptableSettings item in scriptableSettings)
-            _allSettings.Add(GetKey(item.GetType()), item);
+            _index.Add(GetKey(item.GetType()), item);
     }
     
     public static string GetKey(Type type) => type.FullName;
-    public const string AssetsPath = "Assets/ScriptableSettings/Resources";
     public static T Get<T>() where T : ScriptableSettings
     {
         string key = GetKey(typeof(T));
         //Debug.Log("Searching for key: " + key);
         
-        if (!Instance.AllSettings.ContainsKey(key))
-            Instance.InitializeAllSettings();
+        if (!Instance.Index.ContainsKey(key))
+            Instance.InitializeIndex();
         
-        return Instance.AllSettings[key] as T;
+        return Instance.Index[key] as T;
     }
 
-    public void RemoveTag(int index)
+
+#if UNITY_EDITOR
+
+    #region Static
+    static ScriptableSettingsManager()
     {
-        var tag = tags[index];
-        tags.RemoveAt(index);
-        DestroyImmediate(tag, true);
-#if UNITY_EDITOR
-        AssetDatabase.SaveAssets();
-#endif
+        EditorApplication.delayCall += EditorInitialize;
     }
-
-    
-    
-#if UNITY_EDITOR
+    private static void EditorInitialize()
+    {
+        EditorApplication.delayCall -= EditorInitialize;
+        Instance.InstantiateMissingSettings();
+    }
+    #endregion
   
     [Button]
     public static ScriptableSettingsTag CreateNewTag(string nTagName)
@@ -89,6 +82,14 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
         return Instance.FindOrCreateTag(nTagName);
     }
 
+    public void RemoveTag(int index)
+    {
+        var tag = tags[index];
+        tags.RemoveAt(index);
+        DestroyImmediate(tag, true);
+        AssetDatabase.SaveAssets();
+    }
+    
     public ScriptableSettingsTag FindOrCreateTag(string tagName)
     {
         ScriptableSettingsTag tag = tags.Find(x => x.name == tagName);
@@ -104,29 +105,32 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
         return nTag;
     }
 
-    public static void Update()
-    {
-        Instance._Update();
-    }
 
-    public void _Update()
+    public void InstantiateMissingSettings()
     {
-        if(scriptableSettings == null)
-            scriptableSettings = new List<ScriptableSettings>();
+        scriptableSettings ??= new List<ScriptableSettings>();
+        
         scriptableSettings.Clear();
 
         IEnumerable<Type> types = GetAllSubclassTypes<ScriptableSettings>();
+        
+        if (!AssetDatabase.IsValidFolder("Assets/ScriptableObjects"))
+            AssetDatabase.CreateFolder("Assets", "ScriptableObjects");
 
-        if (!AssetDatabase.IsValidFolder("Assets/ScriptableSettings"))
-            AssetDatabase.CreateFolder("Assets", "ScriptableSettings");
+        if (!AssetDatabase.IsValidFolder("Assets/ScriptableObjects/Settings"))
+            AssetDatabase.CreateFolder("Assets/ScriptableObjects", "Settings");
 
-        if (!AssetDatabase.IsValidFolder("Assets/ScriptableSettings/Resources"))
-            AssetDatabase.CreateFolder("Assets/ScriptableSettings", "Resources");
-
+        string folderParent = "Assets/ScriptableObjects/Settings";
+        
         foreach (Type item in types)
         {
             string key = GetKey(item);
-            string currentPath = $"{AssetsPath}/{key}.asset";
+            
+            string path = $"{folderParent}/{key}";
+            if (!AssetDatabase.IsValidFolder(path))
+                AssetDatabase.CreateFolder(folderParent, key);
+            
+            string currentPath = $"{path}/{key}.asset";
             string localPath = $"{key}";
             UnityEngine.Object uObject = Resources.Load(localPath, item);
             if (uObject == null)
@@ -137,8 +141,6 @@ public class ScriptableSettingsManager : RuntimeScriptableSingleton<ScriptableSe
             scriptableSettings.Add(uObject as ScriptableSettings);
         }
         AssetDatabase.SaveAssets();
-        Instance.InitializeAllSettings();
-        
         scriptableSettings.Sort(SortByName);
     }
 

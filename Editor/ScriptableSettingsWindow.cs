@@ -21,10 +21,14 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
         {
             var tree = new OdinMenuTree(false, new OdinMenuTreeDrawingConfig(){ DrawSearchToolbar = true, AutoHandleKeyboardNavigation = false});
             
-            tree.AddAllAssetsAtPath("Settings", "Assets/ScriptableObjects/Settings",
-                typeof(ScriptableSettings));
-
+            /*tree.AddAllAssetsAtPath("Settings", "Assets/ScriptableObjects/Settings",
+                typeof(ScriptableSettings));*/
             var settingsManager = ScriptableSettingsManager.Instance;
+
+            foreach (var settings in settingsManager.ScriptableSettings)
+                tree.Add($"Setting/{settings.name.Replace("Settings", String.Empty)}", settings);
+
+
             Type type = typeof(BaseRuntimeScriptableSingleton);
             HashSet<Object> assets = new HashSet<Object>();
             string[] guids = AssetDatabase.FindAssets($"t:{type}");
