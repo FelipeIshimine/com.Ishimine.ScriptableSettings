@@ -38,13 +38,12 @@ public static class ScriptableSettingsEditor
         {
             string key = GetKey(item);
             string localPath = $"{Folder}/{key}.asset";
-            ScriptableSettingsBucket bucket = AssetDatabase.LoadAssetAtPath<ScriptableSettingsBucket>(localPath);
+            ScriptableSettingsBucket bucket = AssetDatabase.LoadMainAssetAtPath(localPath) as ScriptableSettingsBucket;
             if (bucket == null)
             {
                 bucket = ScriptableObject.CreateInstance<ScriptableSettingsBucket>();
                 AssetDatabase.CreateAsset(bucket, $"{localPath}");
             }
-
             bucket.Initialize(item);
             buckets.Add(bucket);
         }

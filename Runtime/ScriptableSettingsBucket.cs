@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class ScriptableSettingsBucket : ScriptableObject
 {
-    [SerializeField, HideInInspector] public List<BaseScriptableSettings> Values { get; private set; }= new List<BaseScriptableSettings>();
+    [field:SerializeField, HideInInspector] public List<BaseScriptableSettings> Values { get; private set; }= new List<BaseScriptableSettings>();
     
     public bool IsEmpty => Values.Count == 0;
 
@@ -156,6 +156,13 @@ public class ScriptableSettingsBucket : ScriptableObject
         Values.Remove(value);
         Values.Insert(0,value);
     }
+    
+    public void Initialize(Type item)
+    {
+        Values.RemoveAll(x => x == null);
+        if (Values.Count == 0) Add(item);
+    }
+    
 #endif
     
     public IReadOnlyList<T> GetValues<T>() where T : BaseScriptableSettings
@@ -181,11 +188,7 @@ public class ScriptableSettingsBucket : ScriptableObject
 
     public string[] GetLabel() => new[] { $"BaseScriptableSettings, BaseScriptableSettings/{ContentType.FullName}" };
 
-    public void Initialize(Type item)
-    {
-        Values.RemoveAll(x => x == null);
-        if (Values.Count == 0) Add(item);
-    }
+    
 }
 
 
