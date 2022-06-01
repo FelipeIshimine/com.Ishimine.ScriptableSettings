@@ -5,7 +5,7 @@ using Sirenix.OdinInspector;
 using UnityEngine;
 
 [System.Serializable, InlineProperty]
-public class ScriptableSettingsLoader<T> where T : ScriptableSettings
+public class ScriptableSettingsLoader<T> where T : BaseScriptableSettings
 {
     [SerializeField, LabelWidth(70), InfoBox("No bucket found", InfoMessageType.Error, nameof(ShowErrorMessage))]
     [OnValueChanged(nameof(ValidateBucket))]
@@ -49,12 +49,12 @@ public class ScriptableSettingsLoader<T> where T : ScriptableSettings
 
     private IEnumerable GetOptions()
     {
-        List<ValueDropdownItem<ScriptableSettings>> dropdownItems = new List<ValueDropdownItem<ScriptableSettings>>();
+        List<ValueDropdownItem<BaseScriptableSettings>> dropdownItems = new List<ValueDropdownItem<BaseScriptableSettings>>();
         if (bucket)
         {
             var all = bucket.GetValues();
             foreach (var value in all)
-                dropdownItems.Add(new ValueDropdownItem<ScriptableSettings>(value.name, value));
+                dropdownItems.Add(new ValueDropdownItem<BaseScriptableSettings>(value.name, value));
         }
 
         return dropdownItems;

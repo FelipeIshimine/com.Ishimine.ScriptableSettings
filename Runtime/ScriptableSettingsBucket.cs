@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class ScriptableSettingsBucket : ScriptableObject
 {
-    [SerializeField, HideInInspector] private List<ScriptableSettings> values = new List<ScriptableSettings>();
+    [SerializeField, HideInInspector] private List<BaseScriptableSettings> values = new List<BaseScriptableSettings>();
     
     public bool IsEmpty => values.Count == 0;
 
@@ -32,14 +32,14 @@ public class ScriptableSettingsBucket : ScriptableObject
         List<Options> options = new List<Options>();
         for (var i = 0; i < values.Count; i++)
         {
-            ScriptableSettings settings = values[i];
+            BaseScriptableSettings settings = values[i];
             options.Add(new Options($"{i}-{settings.name}", () => Select(settings)));
         }
 
         return options;
     }
 
-    private void Select(ScriptableSettings settings)
+    private void Select(BaseScriptableSettings settings)
     {
         int index = values.IndexOf(settings);
         Selected = values[index];
@@ -59,13 +59,14 @@ public class ScriptableSettingsBucket : ScriptableObject
     [SerializeField, HideInInspector] private int index;
 
     [ShowInInspector, Title("", HorizontalLine = true), VerticalGroup("Main/Left"), InlineEditor(Expanded = true, DrawHeader = false, ObjectFieldMode = InlineEditorObjectFieldModes.Hidden)]
-    public ScriptableSettings Selected
+    public BaseScriptableSettings Selected
     {
         get => values[index];
         set => index = values.IndexOf(value);
     }
 
     public int Count => values.Count;
+    public string MenuName => ContentType.Name.Replace("Settings", string.Empty);
 
 
     [Button("Set As Default"),VerticalGroup("Main/Right")]
@@ -123,41 +124,41 @@ public class ScriptableSettingsBucket : ScriptableObject
     private bool CanRemove() => values.Count > 1;
     
 
-    private ScriptableSettings Add(Type bucketContentType) => SaveAsset(CreateInstance(bucketContentType));
+    private BaseScriptableSettings Add(Type bucketContentType) => SaveAsset(CreateInstance(bucketContentType));
     
-    private ScriptableSettings SaveAsset(ScriptableObject scriptableObject)
+    private BaseScriptableSettings SaveAsset(ScriptableObject scriptableObject)
     {
         scriptableObject.name = values.Count.ToString();
         AssetDatabase.AddObjectToAsset(scriptableObject, this);
-        values.Add(scriptableObject as ScriptableSettings);
+        values.Add(scriptableObject as BaseScriptableSettings);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        return scriptableObject as ScriptableSettings;
+        return scriptableObject as BaseScriptableSettings;
     }
 
-    public IReadOnlyList<ScriptableSettings> GetValues() =>values;
+    public IReadOnlyList<BaseScriptableSettings> GetValues() =>values;
 
     
-    public T Add<T>() where T : ScriptableSettings => Add(typeof(T)) as T;
+    public T Add<T>() where T : BaseScriptableSettings => Add(typeof(T)) as T;
 
     public void Remove(int index) => Remove(values[index]);
 
-    public void Remove(ScriptableSettings scriptableSettings)
+    public void Remove(BaseScriptableSettings BaseScriptableSettings)
     {
-        values.Remove(scriptableSettings);
-        Undo.DestroyObjectImmediate(scriptableSettings);
+        values.Remove(BaseScriptableSettings);
+        Undo.DestroyObjectImmediate(BaseScriptableSettings);
     }
 
     public void SetMain(int index) => SetMain(values[index]);
 
-    private void SetMain(ScriptableSettings value)
+    private void SetMain(BaseScriptableSettings value)
     {
         values.Remove(value);
         values.Insert(0,value);
     }
 #endif
     
-    public IReadOnlyList<T> GetValues<T>() where T : ScriptableSettings
+    public IReadOnlyList<T> GetValues<T>() where T : BaseScriptableSettings
     {
 #if UNITY_EDITOR
         if (values.Count == 0)
@@ -167,7 +168,7 @@ public class ScriptableSettingsBucket : ScriptableObject
         return values.ConvertAll(x=> x as T);
     }
 
-    public IReadOnlyList<ScriptableSettings> GetValues(Type bucketContentType)
+    public IReadOnlyList<BaseScriptableSettings> GetValues(Type bucketContentType)
     {
 #if UNITY_EDITOR
         if (values.Count == 0)
@@ -177,8 +178,8 @@ public class ScriptableSettingsBucket : ScriptableObject
         return values;
     }
 
-    
-    
+
+    public string[] GetLabel() => new[] { $"BaseScriptableSettings, BaseScriptableSettings/{ContentType.FullName}" };
 }
 
 

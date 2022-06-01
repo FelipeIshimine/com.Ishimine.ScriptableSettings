@@ -23,28 +23,25 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
             
             /*tree.AddAllAssetsAtPath("Settings", "Assets/ScriptableObjects/Settings",
                 typeof(ScriptableSettings));*/
-            var settingsManager = ScriptableSettingsEditorManager.Instance;
+            //var settingsManager = ScriptableSettingsEditorManager.Instance;
 
-
-            var list = settingsManager.Buckets;
-            for (int i = list.Count - 1; i >= 0; i--)
-                if(list[i] == null) list.RemoveAt(i);
+            //tree.AddAllAssetsAtPath("Settings/", ScriptableSettingsEditor.Folder, typeof(ScriptableSettingsBucket), true);
             
-            foreach (var bucket in list)
-            {
-                //Editor.CreateCachedEditor(null, this);
-                
-                tree.Add($"Setting/{bucket.ContentType}", bucket);
-                var settings = bucket.GetValues();
-                for (int i = 0; i < settings.Count; i++)
-                {
-                    tree.Add($"Setting/{bucket.ContentType}/{settings[i].name}",settings[i]);
-                }
-            }
-
-            Type type = typeof(BaseRuntimeScriptableSingleton);
-            HashSet<Object> assets = new HashSet<Object>();
+            Type type = typeof(ScriptableSettingsBucket);
+            HashSet<ScriptableSettingsBucket> buckets = new HashSet<ScriptableSettingsBucket>();
             string[] guids = AssetDatabase.FindAssets($"t:{type}");
+            for (int i = 0; i < guids.Length; i++)
+            {
+                string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
+                ScriptableSettingsBucket bucket = AssetDatabase.LoadAssetAtPath<ScriptableSettingsBucket>(assetPath);
+                buckets.Add(bucket);
+            }
+            foreach (var bucket in buckets)
+                tree.Add($"Settings/{bucket.MenuName}", bucket);
+            
+            type = typeof(BaseRuntimeScriptableSingleton);
+            HashSet<Object> assets = new HashSet<Object>();
+            guids = AssetDatabase.FindAssets($"t:{type}");
             for (int i = 0; i < guids.Length; i++)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
@@ -53,26 +50,6 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
                     if (found[index].GetType().IsSubclassOf(type) && !assets.Contains(found[index]))
                         assets.Add(found[index]);
             }
-            
-            /*foreach (ScriptableSettingsTag tag in settingsManager.Tags)
-            {
-                if(tag == null) continue;
-                tree.Add($"{tag.name}", tag);
-                foreach (BaseRuntimeScriptableSingleton element in tag.Elements)
-                {
-                    if(element == null) continue;
-
-                    if (assets.Contains(element))
-                        assets.Remove(element);
-                    
-                    string elementName = element.name;
-
-                    if (settingsManager.removeManagerFromNames) elementName = elementName.Replace("Manager", String.Empty);
-                    if (settingsManager.removeSettingsFromNames) elementName = elementName.Replace("Settings", String.Empty);
-                    
-                    tree.Add($"{tag.name}/{elementName}", element);
-                }
-            }*/
 
             foreach (Object asset in assets)
             {
@@ -99,7 +76,6 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
             }
             
             tree.SortMenuItemsByName();
-            tree.Add("PERSONALIZATION", settingsManager);
 
             return tree;
         }

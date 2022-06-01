@@ -65,7 +65,7 @@ public class ScriptableSettingsEditorManager : RuntimeScriptableSingleton<Script
 
         buckets.Clear();
 
-        IEnumerable<Type> types = GetAllSubclassTypes<ScriptableSettings>();
+        IEnumerable<Type> types = GetAllSubclassTypes<BaseScriptableSettings>();
 
         if (!AssetDatabase.IsValidFolder("Assets/ScriptableObjects"))
             AssetDatabase.CreateFolder("Assets", "ScriptableObjects");
