@@ -3,4 +3,7 @@
     public string texto;
     public float floatNumber;
     public float intNumber;
+    
+
+    
 }

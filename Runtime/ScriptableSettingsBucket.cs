@@ -9,11 +9,10 @@ public class ScriptableSettingsBucket : ScriptableObject
     [SerializeField, HideInInspector] private List<ScriptableSettings> values = new List<ScriptableSettings>();
     
     public bool IsEmpty => values.Count == 0;
+
     public Type ContentType => values.Count == 0 ? null : values[0].GetType();
 
 #if UNITY_EDITOR
-
- 
 
     private List<Options> _settingsOptions;
 
@@ -65,8 +64,10 @@ public class ScriptableSettingsBucket : ScriptableObject
         get => values[index];
         set => index = values.IndexOf(value);
     }
-        
-   
+
+    public int Count => values.Count;
+
+
     [Button("Set As Default"),VerticalGroup("Main/Right")]
     private void SetAsMain()
     {
@@ -104,6 +105,13 @@ public class ScriptableSettingsBucket : ScriptableObject
         RefreshList();
     }
 
+    [Button("Duplicate"), VerticalGroup("Main/Right")]
+    private void Duplicate()
+    {
+        Selected = SaveAsset(Instantiate(Selected));
+        RefreshList();
+    }
+    
     [Button, VerticalGroup("Main/Right"),EnableIf(nameof(CanRemove))]
     private void Remove()
     {
@@ -113,15 +121,18 @@ public class ScriptableSettingsBucket : ScriptableObject
     }
 
     private bool CanRemove() => values.Count > 1;
-    private ScriptableSettings Add(Type bucketContentType)
+    
+
+    private ScriptableSettings Add(Type bucketContentType) => SaveAsset(CreateInstance(bucketContentType));
+    
+    private ScriptableSettings SaveAsset(ScriptableObject scriptableObject)
     {
-        var nSettings = CreateInstance(bucketContentType);
-        nSettings.name = values.Count.ToString();
-        AssetDatabase.AddObjectToAsset(nSettings, this);
-        values.Add(nSettings as ScriptableSettings);
+        scriptableObject.name = values.Count.ToString();
+        AssetDatabase.AddObjectToAsset(scriptableObject, this);
+        values.Add(scriptableObject as ScriptableSettings);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
-        return nSettings as ScriptableSettings;
+        return scriptableObject as ScriptableSettings;
     }
 
     public IReadOnlyList<ScriptableSettings> GetValues() =>values;

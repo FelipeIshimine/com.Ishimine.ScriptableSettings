@@ -23,7 +23,7 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
             
             /*tree.AddAllAssetsAtPath("Settings", "Assets/ScriptableObjects/Settings",
                 typeof(ScriptableSettings));*/
-            var settingsManager = ScriptableSettingsManager.Instance;
+            var settingsManager = ScriptableSettingsEditorManager.Instance;
 
 
             var list = settingsManager.Buckets;
@@ -54,7 +54,7 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
                         assets.Add(found[index]);
             }
             
-            foreach (ScriptableSettingsTag tag in settingsManager.Tags)
+            /*foreach (ScriptableSettingsTag tag in settingsManager.Tags)
             {
                 if(tag == null) continue;
                 tree.Add($"{tag.name}", tag);
@@ -72,10 +72,31 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
                     
                     tree.Add($"{tag.name}/{elementName}", element);
                 }
-            }
+            }*/
 
             foreach (Object asset in assets)
-                tree.Add($"_/{asset.name}", asset);
+            {
+                if (asset is BaseRuntimeScriptableSingleton baseRuntimeScriptableSingleton)
+                {
+                    switch (baseRuntimeScriptableSingleton.loadMode)
+                    {
+                        case BaseRuntimeScriptableSingleton.AssetMode.EditorOnly:
+                            tree.Add($"EditorOnly/{asset.name}", asset);
+                            break;
+                        case BaseRuntimeScriptableSingleton.AssetMode.Addressable:
+                            tree.Add($"Release/Addressable/{asset.name}", asset);
+                            break;
+                        case BaseRuntimeScriptableSingleton.AssetMode.Resources:
+                            tree.Add($"Release/Resources/{asset.name}", asset);
+                            break;
+                        case BaseRuntimeScriptableSingleton.AssetMode.AddressableManual:
+                            tree.Add($"Release/ManualAddressable/{asset.name}", asset);
+                            break;
+                        default:
+                            throw new ArgumentOutOfRangeException();
+                    }
+                }
+            }
             
             tree.SortMenuItemsByName();
             tree.Add("PERSONALIZATION", settingsManager);
