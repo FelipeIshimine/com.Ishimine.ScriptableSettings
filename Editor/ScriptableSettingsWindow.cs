@@ -25,9 +25,22 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
                 typeof(ScriptableSettings));*/
             var settingsManager = ScriptableSettingsManager.Instance;
 
-            foreach (var settings in settingsManager.ScriptableSettings)
-                tree.Add($"Setting/{settings.name.Replace("Settings", String.Empty)}", settings);
 
+            var list = settingsManager.Buckets;
+            for (int i = list.Count - 1; i >= 0; i--)
+                if(list[i] == null) list.RemoveAt(i);
+            
+            foreach (var bucket in list)
+            {
+                //Editor.CreateCachedEditor(null, this);
+                
+                tree.Add($"Setting/{bucket.ContentType}", bucket);
+                var settings = bucket.GetValues();
+                for (int i = 0; i < settings.Count; i++)
+                {
+                    tree.Add($"Setting/{bucket.ContentType}/{settings[i].name}",settings[i]);
+                }
+            }
 
             Type type = typeof(BaseRuntimeScriptableSingleton);
             HashSet<Object> assets = new HashSet<Object>();
