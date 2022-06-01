@@ -17,6 +17,7 @@ public static class ScriptableSettingsEditor
 
     static ScriptableSettingsEditor()
     {
+        Debug.Log("ScriptableSettingsEditor");
         var list = InstantiateMissing();
         AddToAddressableAssets(list);
     }
@@ -33,8 +34,6 @@ public static class ScriptableSettingsEditor
         if (!AssetDatabase.IsValidFolder("Assets/ScriptableObjects/Settings"))
             AssetDatabase.CreateFolder("Assets/ScriptableObjects", "Settings");
 
-        Debug.Log(types.Count);
-        
         foreach (Type item in types)
         {
             string key = GetKey(item);
@@ -46,7 +45,7 @@ public static class ScriptableSettingsEditor
                 AssetDatabase.CreateAsset(bucket, $"{localPath}");
             }
 
-            bucket.GetValues(item);
+            bucket.Initialize(item);
             buckets.Add(bucket);
         }
 
@@ -102,20 +101,20 @@ public static class ScriptableSettingsEditor
         if (settings)
         {
             var group = settings.FindGroup(groupName);
-            if (!@group)
-                @group = settings.CreateGroup(groupName, false, false, true, null, typeof(ContentUpdateGroupSchema), typeof(BundledAssetGroupSchema));
+            if (!group)
+                group = settings.CreateGroup(groupName, false, false, true, null, typeof(ContentUpdateGroupSchema), typeof(BundledAssetGroupSchema));
  
             var assetPath = AssetDatabase.GetAssetPath(asset);
             var guid = AssetDatabase.AssetPathToGUID(assetPath);
  
-            var addressableAssetEntry = settings.CreateOrMoveEntry(guid, @group, false, false);
+            var addressableAssetEntry = settings.CreateOrMoveEntry(guid, group, false, false);
 
             foreach (string label in labels)
                 addressableAssetEntry.labels.Add(label);
             
             var entriesAdded = new List<AddressableAssetEntry> {addressableAssetEntry};
  
-            @group.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entriesAdded, false, true);
+            group.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entriesAdded, false, true);
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entriesAdded, true, false);
         }
     }

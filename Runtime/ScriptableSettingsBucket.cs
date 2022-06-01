@@ -6,11 +6,11 @@ using UnityEngine;
 
 public class ScriptableSettingsBucket : ScriptableObject
 {
-    [SerializeField, HideInInspector] private List<BaseScriptableSettings> values = new List<BaseScriptableSettings>();
+    [SerializeField, HideInInspector] public List<BaseScriptableSettings> Values { get; private set; }= new List<BaseScriptableSettings>();
     
-    public bool IsEmpty => values.Count == 0;
+    public bool IsEmpty => Values.Count == 0;
 
-    public Type ContentType => values.Count == 0 ? null : values[0].GetType();
+    public Type ContentType => Values.Count == 0 ? null : Values[0].GetType();
 
 #if UNITY_EDITOR
 
@@ -30,9 +30,9 @@ public class ScriptableSettingsBucket : ScriptableObject
     public List<Options> GetOptions()
     {
         List<Options> options = new List<Options>();
-        for (var i = 0; i < values.Count; i++)
+        for (var i = 0; i < Values.Count; i++)
         {
-            BaseScriptableSettings settings = values[i];
+            BaseScriptableSettings settings = Values[i];
             options.Add(new Options($"{i}-{settings.name}", () => Select(settings)));
         }
 
@@ -41,8 +41,8 @@ public class ScriptableSettingsBucket : ScriptableObject
 
     private void Select(BaseScriptableSettings settings)
     {
-        int index = values.IndexOf(settings);
-        Selected = values[index];
+        int index = Values.IndexOf(settings);
+        Selected = Values[index];
     }
 
     [ShowInInspector, VerticalGroup("Main/Left"), HideLabel]
@@ -61,11 +61,11 @@ public class ScriptableSettingsBucket : ScriptableObject
     [ShowInInspector, Title("", HorizontalLine = true), VerticalGroup("Main/Left"), InlineEditor(Expanded = true, DrawHeader = false, ObjectFieldMode = InlineEditorObjectFieldModes.Hidden)]
     public BaseScriptableSettings Selected
     {
-        get => values[index];
-        set => index = values.IndexOf(value);
+        get => Values[index];
+        set => index = Values.IndexOf(value);
     }
 
-    public int Count => values.Count;
+    public int Count => Values.Count;
     public string MenuName => ContentType.Name.Replace("Settings", string.Empty);
 
 
@@ -74,7 +74,7 @@ public class ScriptableSettingsBucket : ScriptableObject
     {
         SetMain(index);
         index = 0;
-        Selected = values[index];
+        Selected = Values[index];
         RefreshList();
     }
     [Button("↑"),HorizontalGroup("Main/Right/Move")]
@@ -82,18 +82,18 @@ public class ScriptableSettingsBucket : ScriptableObject
     {
         if (index == 0) return;
         var current = Selected;
-        values.Remove(current);
-        values.Insert(--index,current);
+        Values.Remove(current);
+        Values.Insert(--index,current);
         RefreshList();
     }
     
     [Button("↓"),HorizontalGroup("Main/Right/Move")]
     private void MoveDown()
     {
-        if (index == values.Count-1) return;
+        if (index == Values.Count-1) return;
         var current = Selected;
-        values.Remove(current);
-        values.Insert(++index,current);
+        Values.Remove(current);
+        Values.Insert(++index,current);
         RefreshList();
     }
 
@@ -121,65 +121,71 @@ public class ScriptableSettingsBucket : ScriptableObject
         RefreshList();
     }
 
-    private bool CanRemove() => values.Count > 1;
+    private bool CanRemove() => Values.Count > 1;
     
 
     private BaseScriptableSettings Add(Type bucketContentType) => SaveAsset(CreateInstance(bucketContentType));
     
     private BaseScriptableSettings SaveAsset(ScriptableObject scriptableObject)
     {
-        scriptableObject.name = values.Count.ToString();
+        scriptableObject.name = Values.Count.ToString();
         AssetDatabase.AddObjectToAsset(scriptableObject, this);
-        values.Add(scriptableObject as BaseScriptableSettings);
+        Values.Add(scriptableObject as BaseScriptableSettings);
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
         return scriptableObject as BaseScriptableSettings;
     }
 
-    public IReadOnlyList<BaseScriptableSettings> GetValues() =>values;
+    public IReadOnlyList<BaseScriptableSettings> GetValues() =>Values;
 
     
     public T Add<T>() where T : BaseScriptableSettings => Add(typeof(T)) as T;
 
-    public void Remove(int index) => Remove(values[index]);
+    public void Remove(int index) => Remove(Values[index]);
 
     public void Remove(BaseScriptableSettings BaseScriptableSettings)
     {
-        values.Remove(BaseScriptableSettings);
+        Values.Remove(BaseScriptableSettings);
         Undo.DestroyObjectImmediate(BaseScriptableSettings);
     }
 
-    public void SetMain(int index) => SetMain(values[index]);
+    public void SetMain(int index) => SetMain(Values[index]);
 
     private void SetMain(BaseScriptableSettings value)
     {
-        values.Remove(value);
-        values.Insert(0,value);
+        Values.Remove(value);
+        Values.Insert(0,value);
     }
 #endif
     
     public IReadOnlyList<T> GetValues<T>() where T : BaseScriptableSettings
     {
 #if UNITY_EDITOR
-        if (values.Count == 0)
+        if (Values.Count == 0)
             Add<T>();
 #endif
         if (typeof(T) != ContentType) throw new Exception($"Wrong type requested. ContentType:{ContentType} Request:{typeof(T)}.");
-        return values.ConvertAll(x=> x as T);
+        return Values.ConvertAll(x=> x as T);
     }
 
     public IReadOnlyList<BaseScriptableSettings> GetValues(Type bucketContentType)
     {
 #if UNITY_EDITOR
-        if (values.Count == 0)
+        if (Values.Count == 0)
             Add(bucketContentType);
 #endif
         if (bucketContentType != ContentType) throw new Exception($"Wrong type requested. ContentType:{ContentType} Request:{bucketContentType}.");
-        return values;
+        return Values;
     }
 
 
     public string[] GetLabel() => new[] { $"BaseScriptableSettings, BaseScriptableSettings/{ContentType.FullName}" };
+
+    public void Initialize(Type item)
+    {
+        Values.RemoveAll(x => x == null);
+        if (Values.Count == 0) Add(item);
+    }
 }
 
 
@@ -197,3 +203,4 @@ public struct Options
     [Button("$Label")]
     public void Pressed() => _callback?.Invoke();
 }
+
