@@ -188,7 +188,8 @@ public class ScriptableSettingsBucket : ScriptableObject
 
     public string[] GetLabel() => new[] { $"BaseScriptableSettings, BaseScriptableSettings/{ContentType.FullName}" };
 
-    
+
+    public T GetDefault<T>() where T : ScriptableSettings<T>  => Values[0] as T;
 }
 
 
