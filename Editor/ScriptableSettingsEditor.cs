@@ -8,6 +8,7 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using Object = UnityEngine.Object;
 
 [InitializeOnLoad]
 public static class ScriptableSettingsEditor
@@ -22,9 +23,12 @@ public static class ScriptableSettingsEditor
         AddToAddressableAssets(list);
     }
 
-    public static List<ScriptableSettingsBucket> InstantiateMissing()
+    [MenuItem("ScriptableSettings/InstantiateMissing")]
+    public static void InstantiateMissingButton() => InstantiateMissing();
+    
+    public static List<BaseScriptableSettings> InstantiateMissing()
     {
-        var buckets = new List<ScriptableSettingsBucket>();
+        var baseScriptableSettingsList = new List<BaseScriptableSettings>();
 
         var types = new List<Type>(GetAllSubclassTypes<BaseScriptableSettings>());
 
@@ -38,26 +42,28 @@ public static class ScriptableSettingsEditor
         {
             string key = GetKey(item);
             string localPath = $"{Folder}/{key}.asset";
-            ScriptableSettingsBucket bucket = AssetDatabase.LoadMainAssetAtPath(localPath) as ScriptableSettingsBucket;
-            if (bucket == null)
+            var baseScriptable = AssetDatabase.LoadMainAssetAtPath(localPath);
+            if (baseScriptable == null)
             {
-                bucket = ScriptableObject.CreateInstance<ScriptableSettingsBucket>();
-                AssetDatabase.CreateAsset(bucket, $"{localPath}");
+                baseScriptable = ScriptableObject.CreateInstance(item);
+                AssetDatabase.CreateAsset(baseScriptable, $"{localPath}");
+                ((BaseScriptableSettings)baseScriptable).InitializeMain();
             }
-            bucket.Initialize(item);
-            buckets.Add(bucket);
+
+            var newSettings = (BaseScriptableSettings)baseScriptable;
+            baseScriptableSettingsList.Add(newSettings);
         }
 
         AssetDatabase.SaveAssets();
-        buckets.Sort(SortByName);
-        return buckets;
+        baseScriptableSettingsList.Sort(SortByName);
+        return baseScriptableSettingsList;
     }
 
-    private static int SortByName(ScriptableSettingsBucket x, ScriptableSettingsBucket y) => string.Compare(x.name, y.name, StringComparison.Ordinal);
+    private static int SortByName(Object x, Object y) => string.Compare(x.name, y.name, StringComparison.Ordinal);
 
     private static string GetKey(Type item) => item.FullName;
 
-    public static void AddToAddressableAssets(List<ScriptableSettingsBucket> scriptableSettingsBuckets)
+    public static void AddToAddressableAssets(List<BaseScriptableSettings> scriptableSettingsBuckets)
     {
         var group = AddressableAssetSettingsDefaultObject.Settings.groups.Find(x => x.Name == AddressableAssetsGroupName);
 
@@ -73,7 +79,7 @@ public static class ScriptableSettingsEditor
             AddToAddressableAssets(
                 bucket,
                 AddressableAssetsGroupName,
-                bucket.GetLabel());
+                "ScriptableSettings");
         }
     }
     

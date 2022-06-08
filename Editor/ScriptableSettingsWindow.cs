@@ -27,17 +27,29 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
 
             //tree.AddAllAssetsAtPath("Settings/", ScriptableSettingsEditor.Folder, typeof(ScriptableSettingsBucket), true);
             
-            Type type = typeof(ScriptableSettingsBucket);
-            HashSet<ScriptableSettingsBucket> buckets = new HashSet<ScriptableSettingsBucket>();
+            Type type = typeof(BaseScriptableSettings);
+            HashSet<BaseScriptableSettings> scriptableSettings = new HashSet<BaseScriptableSettings>();
             string[] guids = AssetDatabase.FindAssets($"t:{type}");
             for (int i = 0; i < guids.Length; i++)
             {
                 string assetPath = AssetDatabase.GUIDToAssetPath(guids[i]);
-                ScriptableSettingsBucket bucket = AssetDatabase.LoadAssetAtPath<ScriptableSettingsBucket>(assetPath);
-                buckets.Add(bucket);
+                var asset = AssetDatabase.LoadMainAssetAtPath(assetPath);
+                if (asset is BaseScriptableSettings scriptable)
+                    scriptableSettings.Add(scriptable);
             }
-            foreach (var bucket in buckets)
-                tree.Add($"Settings/{bucket.MenuName}", bucket);
+
+            foreach (var settings in scriptableSettings)
+            {
+                string parentPath = $"Settings/{settings.GetType()}";
+                tree.Add(parentPath, new ScriptableSettingsMenu(settings));
+                
+                continue;
+                foreach (var value in settings.Settings)
+                {
+                    Debug.Log("CCC");
+                    tree.Add($"{parentPath}/{value.name}", value);
+                }
+            }
             
             type = typeof(BaseRuntimeScriptableSingleton);
             HashSet<Object> assets = new HashSet<Object>();
