@@ -11,6 +11,7 @@ public class ScriptableSettingsBucket : ScriptableObject
     public bool IsEmpty => Values.Count == 0;
 
     public Type ContentType => Values.Count == 0 ? null : Values[0].GetType();
+    public int Count => Values.Count;
 
 #if UNITY_EDITOR
 
@@ -65,7 +66,6 @@ public class ScriptableSettingsBucket : ScriptableObject
         set => index = Values.IndexOf(value);
     }
 
-    public int Count => Values.Count;
     public string MenuName => ContentType.Name.Replace("Settings", string.Empty);
 
 
