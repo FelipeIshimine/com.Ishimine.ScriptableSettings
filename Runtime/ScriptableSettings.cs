@@ -3,7 +3,6 @@ using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
 
-
 public abstract class ScriptableSettings<T> : BaseScriptableSettings where T : ScriptableSettings<T>
 {
     [field:SerializeField, ShowIf(nameof(IsMain))] private List<T> _values;

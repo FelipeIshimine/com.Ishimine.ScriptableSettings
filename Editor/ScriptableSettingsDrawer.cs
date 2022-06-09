@@ -1,13 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
-[CustomPropertyDrawer(typeof(ScriptableSettings<>), true)]
+/*
+[CustomPropertyDrawer(typeof(ScriptableSettings<>), true)]*/
 public class ScriptableSettingsDrawer : PropertyDrawer
 {
     private int _index;
-    private List<BaseScriptableSettings> _scriptableSettingsOptions;
+    private List<Object> sObjects;
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
@@ -31,56 +34,58 @@ public class ScriptableSettingsDrawer : PropertyDrawer
         }
         
         Rect objectPosition = new Rect(position.x + labelWidth, position.y, objectFieldWidth, 16f);
-        GUI.enabled = false;
+        //GUI.enabled = false;
         EditorGUI.ObjectField(objectPosition, property, GUIContent.none);
-        GUI.enabled = true;
+        //GUI.enabled = true;
 
         Rect buttonPosition = new Rect(position.x + labelWidth + objectFieldWidth, position.y, dropdownButtonWidth, 16f);
-        string buttonName = "NULL";
 
-        if (property.objectReferenceValue != null)
-            buttonName = property.objectReferenceValue.name;
-
-        if (EditorGUI.DropdownButton(buttonPosition, new GUIContent(buttonName), FocusType.Keyboard))
+        ScriptableObject current = property.objectReferenceValue as ScriptableObject;
+        Type targetType = fieldInfo.FieldType;
+        
+        //Debug.Log($"Current:{current}");
+        if (EditorGUI.DropdownButton(buttonPosition, new GUIContent(current != null?current.name:"Null"), FocusType.Keyboard))
         {
             GenericMenu menu = new GenericMenu();
-
-            var targetType = fieldInfo.FieldType;
-
-            if (typeof(IEnumerable).IsAssignableFrom(targetType))
-                targetType = targetType.GenericTypeArguments[0];
-
             var main = ScriptableSettingsEditor.GetMain(targetType);
-            
-            _scriptableSettingsOptions = new List<BaseScriptableSettings>(main.Settings);
-            
-            _scriptableSettingsOptions.Insert(0,null);
-            for (var index = 0; index < _scriptableSettingsOptions.Count; index++)
+            sObjects = new List<Object>(main.Settings);
+            for (var index = 0; index < sObjects.Count; index++)
             {
                 int localIndex = index;
-                BaseScriptableSettings value = _scriptableSettingsOptions[localIndex];
+                Object obj = sObjects[localIndex];
 
-                string path;
-
-                if (value)
-                    path = value.name;
-                else
-                    path = "Null";
-             
+                string path = obj != null ? obj.name : "Null";
                 menu.AddItem(
                     new GUIContent(path),
-                    value == property.objectReferenceValue, 
-                    ()=>
+                    obj == current, 
+                    ()=> 
                     {
-                        property.objectReferenceValue = _scriptableSettingsOptions[localIndex];
-                        _index = localIndex;
+                        property.objectReferenceValue = sObjects[localIndex];
+                        //_index = localIndex;
                     });
-                menu.ShowAsContext();
-            } 
+            }
+            
+            menu.ShowAsContext();
         }
 
-        if (_scriptableSettingsOptions != null && _scriptableSettingsOptions.Count > 0)
-            property.objectReferenceValue = _scriptableSettingsOptions[_index];
+        /*if (sObjects != null && _index >= 0 && _index < sObjects.Count)
+            property.objectReferenceValue = sObjects[_index];
+        else
+        {
+            var main = ScriptableSettingsEditor.GetMain(targetType);
+            sObjects = new List<Object>(main.Settings);
+            if(current != null) _index = sObjects.FindIndex(x => x.name == current.name);
+            if (_index == -1)
+                _index = 0;
+        }*/
+
+        /*if (_index == -1)
+        {
+            _index = property.objectReferenceValue == null ? 0 : _scriptableSettingsOptions.IndexOf(property.objectReferenceValue as BaseScriptableSettings);
+        }*/
+
+        /*if(_index >= 0)
+            property.objectReferenceValue = _scriptableSettingsOptions[_index];*/
     }
 
 }

@@ -14,7 +14,7 @@ public static class ScriptableSettingsEditor
     public const string Folder = "Assets/ScriptableObjects/Settings";
     public const string AddressableAssetsGroupName = "ScriptableSettings";
 
-    private static readonly List<BaseScriptableSettings> AllSettings;
+    private static List<BaseScriptableSettings> AllSettings;
     static ScriptableSettingsEditor()
     {
         Debug.Log("ScriptableSettingsEditor");
@@ -24,7 +24,7 @@ public static class ScriptableSettingsEditor
     }
 
     [MenuItem("ScriptableSettings/InstantiateMissing")]
-    public static void InstantiateMissingButton() => InstantiateMissing();
+    public static void InstantiateMissingButton() => AllSettings = InstantiateMissing();
     
     public static List<BaseScriptableSettings> InstantiateMissing()
     {
@@ -41,7 +41,7 @@ public static class ScriptableSettingsEditor
         foreach (Type item in types)
         {
             string key = GetKey(item);
-            string localPath = $"{Folder}/{key}.asset";
+            string localPath = $"{Folder}/NO USAR - {key}.asset";
             var baseScriptable = AssetDatabase.LoadMainAssetAtPath(localPath);
             if (baseScriptable == null)
             {
