@@ -12,6 +12,7 @@ public class ScriptableSettingsMenu
     public ScriptableSettingsMenu(BaseScriptableSettings main)
     {
         _main = main;
+        index = _main.Settings.Count - 1;
     }
 
     public List<BaseScriptableSettings> Values => _main.Settings;
