@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
@@ -31,7 +32,7 @@ public class ScriptableSettingsMenu
         for (var i = 0; i < Values.Count; i++)
         {
             BaseScriptableSettings settings = Values[i];
-            options.Add(new Options($"{i}-{settings.name}", () => Select(settings)));
+            options.Add(new Options($"{settings.name}", () => Select(settings)));
         }
 
         return options;
@@ -123,9 +124,25 @@ public class ScriptableSettingsMenu
 
     public void Remove(int index) => Remove(Values[index]);
 
-    public void Remove(BaseScriptableSettings BaseScriptableSettings)
+    public void Remove(BaseScriptableSettings baseScriptableSettings)
     {
-        Values.Remove(BaseScriptableSettings);
-        Undo.DestroyObjectImmediate(BaseScriptableSettings);
+        Values.Remove(baseScriptableSettings);
+        Undo.DestroyObjectImmediate(baseScriptableSettings);
     }
 }
+
+public struct Options
+{
+    private string Label;
+    private readonly Action _callback;
+
+    public Options(string label, Action callback)
+    {
+        Label = label;
+        _callback = callback;
+    }
+
+    [Button("$Label")]
+    public void Pressed() => _callback?.Invoke();
+}
+

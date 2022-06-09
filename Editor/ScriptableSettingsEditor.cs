@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
@@ -7,20 +6,21 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 using UnityEngine;
-using UnityEngine.AddressableAssets;
 using Object = UnityEngine.Object;
 
 [InitializeOnLoad]
 public static class ScriptableSettingsEditor
 {
-    public static string Folder = "Assets/ScriptableObjects/Settings";
-    public static string AddressableAssetsGroupName = "ScriptableSettings";
+    public const string Folder = "Assets/ScriptableObjects/Settings";
+    public const string AddressableAssetsGroupName = "ScriptableSettings";
 
+    private static readonly List<BaseScriptableSettings> AllSettings;
     static ScriptableSettingsEditor()
     {
         Debug.Log("ScriptableSettingsEditor");
         var list = InstantiateMissing();
         AddToAddressableAssets(list);
+        AllSettings = list;
     }
 
     [MenuItem("ScriptableSettings/InstantiateMissing")]
@@ -59,6 +59,10 @@ public static class ScriptableSettingsEditor
         return baseScriptableSettingsList;
     }
 
+    public static List<BaseScriptableSettings> GetAllMains() => AllSettings;
+
+    public static BaseScriptableSettings GetMain(Type targetType) => AllSettings.Find(x => x.GetType() == targetType);
+    
     private static int SortByName(Object x, Object y) => string.Compare(x.name, y.name, StringComparison.Ordinal);
 
     private static string GetKey(Type item) => item.FullName;
@@ -82,6 +86,8 @@ public static class ScriptableSettingsEditor
                 "ScriptableSettings");
         }
     }
+    
+  
     
     private static IEnumerable<Type> GetAllSubclassTypes<T>()
     {
@@ -123,5 +129,6 @@ public static class ScriptableSettingsEditor
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.EntryMoved, entriesAdded, true, false);
         }
     }
-  
+
+   
 }

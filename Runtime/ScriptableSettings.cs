@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEditor;
 using UnityEngine;
+
 
 public abstract class ScriptableSettings<T> : BaseScriptableSettings where T : ScriptableSettings<T>
 {
@@ -10,14 +10,16 @@ public abstract class ScriptableSettings<T> : BaseScriptableSettings where T : S
 
     public override List<BaseScriptableSettings> Settings => _values.ConvertAll(x => x as BaseScriptableSettings);
     private T Main => main as T;
-    
+
     public List<T> Values => Main == this ? _values : Main._values;
 
     public string[] GetLabel() => new[] { $"BaseScriptableSettings, BaseScriptableSettings/{GetType().FullName}" };
-    public T GetDefault() => Values[0];
     public int Count => Values.Count;
     public bool IsMain => this == main;
 
+    public T Get() => Main._values[0];
+    public T Get(int index) => Main._values[index];
+    
 #if UNITY_EDITOR
     public override void InitializeMain()
     {
@@ -60,8 +62,6 @@ public abstract class ScriptableSettings<T> : BaseScriptableSettings where T : S
         return scriptableObject;
     }
 
-  
-    
 #endif
 
 }
