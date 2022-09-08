@@ -87,9 +87,12 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
                 }
             }
         }
-
+        
+        tree.AddAllAssetsAtPath("ScriptableObjects", "ScriptableObjects", typeof(ScriptableObject), true);
+        
         tree.SortMenuItemsByName();
 
+        
         return tree;
     }
 }
