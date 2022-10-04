@@ -66,12 +66,20 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
 
         foreach (string folder in folders)
         {
+            
             var found = LoadFilesInFolder<ScriptableObject>(folder, "*", SearchOption.AllDirectories);
             var unityPath = SystemToUnityPath(folder).Replace("Assets/",string.Empty);
+            
+            if(unityPath is "ScriptableObjects/Managers" or "ScriptableObjects/Resources")
+                continue;
+            
             tree.Add(unityPath,new ScriptableSettingsBucket(tree,found, unityPath));
+            
+            tree.AddAllAssetsAtPath(unityPath, unityPath, typeof(ScriptableObject), true);
+
         }
         
-        tree.AddAllAssetsAtPath("ScriptableObjects", "ScriptableObjects", typeof(ScriptableObject), true);
+        //tree.AddAllAssetsAtPath("ScriptableObjects", "ScriptableObjects", typeof(ScriptableObject), true);
         
         tree.SortMenuItemsByName();
 
