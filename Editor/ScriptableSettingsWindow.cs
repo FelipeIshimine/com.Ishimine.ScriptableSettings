@@ -96,7 +96,7 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
         {
             private OdinMenuTree _odinMenuTree;
 
-            [field: ShowInInspector,  HideLabel, HorizontalGroup, InlineEditor] public ScriptableObject Instance { get; private set; }
+            [field: ShowInInspector,  HideLabel, HorizontalGroup, InlineEditor()] public ScriptableObject Instance { get; private set; }
 
             private readonly string _path;
 
@@ -111,21 +111,11 @@ public class ScriptableSettingsWindow : OdinMenuEditorWindow
             private void Select()
             {
                 _odinMenuTree.Selection.Clear();
-
-                PrintRecursive(_odinMenuTree.RootMenuItem);
-                
                 _odinMenuTree.Selection.Add(_odinMenuTree.GetMenuItem(_path));
-            }
-
-            private void PrintRecursive(OdinMenuItem rootMenuItem)
-            {
-                Debug.Log(rootMenuItem.GetFullPath());
-                foreach (OdinMenuItem item in rootMenuItem.ChildMenuItems)
-                    PrintRecursive(item);
             }
         }
         
-        [field:SerializeField, ListDrawerSettings(HideRemoveButton = true, HideAddButton = true, Expanded = true, DraggableItems = false)] public List<Slot> ScriptableObjects { get; set; }= new List<Slot>();
+        [field:SerializeField, ListDrawerSettings(HideRemoveButton = true, HideAddButton = true, Expanded = true, DraggableItems = false), InlineProperty] public List<Slot> ScriptableObjects { get; set; }= new List<Slot>();
     }
     
     public static T[] LoadFilesInFolder<T>(string folderPath, string pattern, SearchOption searchOption) where T : Object
